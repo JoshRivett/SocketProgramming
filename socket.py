@@ -13,7 +13,10 @@ while True:
         print('Connected by', address)
         while True:
             data = clientsocket.recv(1024)
-            print(data)
+            #print(data)
+            name=address[0]
+            datastr= data.decode("utf-8") 
+            print(name+ " : "+datastr)
             if not data:
                 break
             clientsocket.sendall(data)
