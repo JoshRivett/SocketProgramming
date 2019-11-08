@@ -38,9 +38,24 @@ class MySocket:
             chunks.append(chunk)
             bytes_recd = bytes_recd + len(chunk)
         return b''.join(chunks)
-
-
+    
+    def getusername(self):
+        uname=input("Username: ")
+        unameLen= len(uname)
+        return (str(unameLen),uname)
+        
+    def messenger(self):
+        mess=input("Enter message: ")
+        return mess
+        
+    
 call = MySocket()
+
 call.connect('127.0.0.1',80)
-call.mysend('cat')
+length,username=call.getusername()
+call.mysend(length+username)
+while True:
+    mess=call.messenger()
+    call.mysend(mess)
+#call.mysend('cat')
 
