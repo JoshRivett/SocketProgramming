@@ -1,16 +1,36 @@
 import socket
+import threading
 s=socket.socket(type=socket.SOCK_STREAM)
-s.bind(('127.0.0.1', 80))
+s.bind(('127.0.0.1', 81))
 s.listen(5)
-while True:
+connections=[]
+
+def conncheck():
+    (clientsocket, address) = s.accept()
+
+
+def main(a, b, callback = None):
+    print("adding {} + {}".format(a, b))
+    if callback:
+        callback(a+b)
+
+main(1, 2, callback)
+
+
+#while True:
     # accept connections from outside
     #address[:1]
     (clientsocket, address) = s.accept()
+    '''thread=threading.Thread()
+    thread.daemon = True
     
-    # now do something with the clientsocket
-    # in this case, we'll pretend this is a threaded server
-    #ct = client_thread(clientsocket)
-    #ct.run()
+    
+    thread.start()'''
+    connections.append(s)
+    print(connections)
+    
+    
+    
     with clientsocket:
         print('Connected by', address)
         count=0

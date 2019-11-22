@@ -1,4 +1,5 @@
 import socket
+import threading
 class MySocket:
     """demonstration class only
       - coded for clarity, not efficiency
@@ -13,8 +14,10 @@ class MySocket:
 
     def connect(self, host, port):
         self.sock.connect((host, port))
+        
 
     def mysend(self, m):
+        
         
         msg=bytes(m, 'utf-8')
 
@@ -48,14 +51,32 @@ class MySocket:
         mess=input("Enter message: ")
         return mess
         
-    
+
+def run(soc,l,u):
+    com=str(l)+str(u)
+    #print(com)
+    clithread= threading.Thread(target=soc.mysend,args=(com,))
+    clithread.daemon = True
+    clithread.start()
+    #soc.mysend(length+username)
+    while True:
+        mthreadLock = threading.Lock()
+        mess=soc.messenger()
+        mthreadLock.acquire()
+        mthread= threading.Thread(target=soc.mysend,args=(mess,))
+       
+        mthreadLock.release()
+        mthread.daemon = True
+        mthread.start()
+        #soc.mysend(mess)
+   
 call = MySocket()
 
-call.connect('127.0.0.1',80)
+
 length,username=call.getusername()
-call.mysend(length+username)
-while True:
-    mess=call.messenger()
-    call.mysend(mess)
+#print(length)
+#print(username)
+call.connect('127.0.0.1',81)
+run(call,length,username)
 #call.mysend('cat')
 
