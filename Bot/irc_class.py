@@ -19,16 +19,18 @@ class IRC:
     # Connect to a server
     def connect(self, server, port, channel, botnick, botpass, botnickpass):
         # Connect to the server
-        print("Connecting to: " + server)
+        print("Connecting to " + server + ", on port " + str(port) + "...")
         self.irc.connect((server, port))
 
         # User authentication
+        print("Authenticating as '" + botnick + "'...")
         self.irc.send(bytes("USER " + botnick + " " + botnick + " " + botnick + " :python\n", "UTF-8"))
         self.irc.send(bytes("NICK " + botnick + "\n", "UTF-8"))
         self.irc.send(bytes("NICKSERV IDENTIFY " + botnickpass + " " + botpass + "\n", "UTF-8"))
         time.sleep(5)
 
         # Joins the specified channel
+        print("Joining channel: " + channel + "...")
         self.irc.send(bytes("JOIN " + channel + "\n", "UTF-8"))
 
     # Get response from server
