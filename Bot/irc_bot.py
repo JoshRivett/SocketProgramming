@@ -1,6 +1,7 @@
 # Sources:  https://www.techbeamers.com/create-python-irc-bot/
 #           https://www.w3resource.com/python-exercises/python-basic-exercise-3.php
 #           https://www.guru99.com/reading-and-writing-files-in-python.html
+#           https://stackoverflow.com/questions/8380389/how-to-get-day-name-in-datetime-in-python
 
 from irc_class import *
 from os import path
@@ -53,7 +54,7 @@ while True:
     print(text)
 
     # Checks for commands sent in the chat (should start with a '!')
-    if "PRIVMSG" in text and channel in text and "!" in text:
+    if "PRIVMSG " + channel in text and "!" in text:
         if "!hello" in text:
             irc.send(channel, "Hello!")
         if "!time" in text:
@@ -65,3 +66,7 @@ while True:
         if "!day" in text:
             now = datetime.datetime.now()
             irc.send(channel, "Today is " + now.strftime("%A"))
+    # Checks for private messages sent directly to the bot
+    elif "PRIVMSG " + botnick in text:
+        user = text.split('!')[0].strip(':')
+        irc.send(user, "Hello there!")
