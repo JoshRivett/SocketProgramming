@@ -62,3 +62,6 @@ while True:
         if "!date" in text:
             now = datetime.datetime.now()
             irc.send(channel, "Today's date is " + now.strftime("%d/%m/%Y"))
+        if "!day" in text:
+            now = datetime.datetime.now()
+            irc.send(channel, "Today is " + now.strftime("%A"))
