@@ -64,6 +64,18 @@ def send_response(client_socket, response, message):
     client_socket.send(bytes(":" + SERVER_NAME + " " + response + " " + clients[client_socket].username + " :" +
                              message + "\n", "UTF-8"))
 
+# Send message to hexchat (specific format)
+def msg_chan(client_socket, chan, command, msg, include_self=False):
+    line = ":" + clients[client_socket].nick + "!" + clients[client_socket].username + "@" + IP + " " + command + " " + msg + "\n"
+
+    for client in clients:
+        if client != clients[client_socket] or include_self:
+            client_socket.send(bytes(line, "UTF-8"))
+
+# Send message to hexchat (specific format)
+def reply(client_socket, msg):
+    print(msg)
+    client_socket.send(bytes(":" + clients[client_socket].nick + " " + msg + "\n", "UTF-8"))
 
 # Handle a USER message
 def user_message(client_socket, data):
@@ -155,34 +167,30 @@ def private_message(client_socket, data):
                                  " PRIVMSG " + target + " :" + msg + "\n", "UTF-8"))
 # Handle a PART message
 def part_handler(client_socket, data):
-    chan_name = data[1].strip("#")
+    chan_name = data[1]
 
-    if not chan_name in self.channels:
-        client_socket.send(bytes(":%s" % (clients[users].username) + "\n", "UTF-8"))
+    if not chan_name in channels:
+        reply(client_socket, "422" + clients[client_socket].nick + chan_name + ":You're not on that channel")
     else:
-        chan = channels(chan_name)
-        client_socket.send(bytes(":%s!%s@%s %s" %(clients[users].username, clients[users].nickusername, server, "PART") + "\n", "UTF-8"))
+        # client_socket, chan, command, msg, include_self=False
+        msg_chan(client_socket, chan_name, "PART", chan_name + " :", True)
+        remove_from_chan(chan_name, client_socket)
         del channels[chan_name]
-        remove_from_chan(self, chan_name)
 
 # Handle a QUIT message
 def quit_message(client_socket):
-    disconnect(clients[client_socket].username)
+    disconnect(clients[client_socket].nick)
 
 def disconnect(msg):
-    client_socket.send(bytes("ERROR :%s" % (msg) + "\n", "UTF-8"))
-    client_socket.send(bytes("QUIT :Disconnected connection from %s:%s (%s)." % (IP, PORT, msg) + "\n", "UTF-8"))
-    client_socket.close()
+    reply(client_socket, "QUIT :Disconnected connection from " + IP + ":" + str(PORT) + "(" + msg + ").")
 
-def remove_from_chan(client, chan_name):
-    chan_name = data[1]
+def remove_from_chan(chan_name, client_socket):
+    if chan_name in channels:
+        remove_client(clients[client_socket])
 
-    if chan_name in channels.values():
-        channel = self.channels[chan_name]
-        channel.remove_client(client)
-
-def remove_client(client):
-    del clients[client]
+def remove_client(client_socket):
+    if client_socket in clients:
+        clients.remove(client_socket)
 
 # The welcome message for after successful user registration
 def send_welcome(client_socket):
@@ -233,7 +241,7 @@ def receive_message(client_socket):
             elif command == "QUIT":
                 quit_message(client_socket)
             elif command == "PART":
-                quit_message(client_socket)
+                part_handler(client_socket, msg)
 
             i += 1
 
@@ -269,11 +277,6 @@ while True:
                 continue
 
             user = clients[notified_socket]
-            #print("Received message from " + user.nick)
-
-            # for client_socket in clients:
-                # if client_socket != notified_socket:
-                    # client_socket.send(user['header'] + user['data'] + message['header'] + message['data'])
 
     for notified_socket in exception_sockets:
         sockets_list.remove(notified_socket)
