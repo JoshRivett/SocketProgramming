@@ -14,7 +14,7 @@ from class_channel import *
 
 # Set required constants
 IP = "127.0.0.1"
-PORT = 1234
+PORT = 6667
 SERVER_NAME = "netServer"
 VERSION = "1.0"
 DATE = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -41,7 +41,8 @@ commands = {
     "MODE",
     "WHO",
     "PRIVMSG",
-    "QUIT"
+    "QUIT",
+    "PART"
 }
 
 # Dictionary of command responses
@@ -152,12 +153,36 @@ def private_message(client_socket, data):
             if clients[users].nick == target:
                 users.send(bytes(":" + clients[client_socket].nick + "!" + clients[client_socket].username + "@" + IP +
                                  " PRIVMSG " + target + " :" + msg + "\n", "UTF-8"))
+# Handle a PART message
+def part_handler(client_socket, data):
+    chan_name = data[1].strip("#")
 
+    if not chan_name in self.channels:
+        client_socket.send(bytes(":%s" % (clients[users].username) + "\n", "UTF-8"))
+    else:
+        chan = channels(chan_name)
+        client_socket.send(bytes(":%s!%s@%s %s" %(clients[users].username, clients[users].nickusername, server, "PART") + "\n", "UTF-8"))
+        del channels[chan_name]
+        remove_from_chan(self, chan_name)
 
 # Handle a QUIT message
 def quit_message(client_socket):
-    return
+    disconnect(clients[client_socket].username)
 
+def disconnect(msg):
+    client_socket.send(bytes("ERROR :%s" % (msg) + "\n", "UTF-8"))
+    client_socket.send(bytes("QUIT :Disconnected connection from %s:%s (%s)." % (IP, PORT, msg) + "\n", "UTF-8"))
+    client_socket.close()
+
+def remove_from_chan(client, chan_name):
+    chan_name = data[1]
+
+    if chan_name in channels.values():
+        channel = self.channels[chan_name]
+        channel.remove_client(client)
+
+def remove_client(client):
+    del clients[client]
 
 # The welcome message for after successful user registration
 def send_welcome(client_socket):
@@ -206,6 +231,8 @@ def receive_message(client_socket):
             elif command == "PRIVMSG":
                 private_message(client_socket, msg)
             elif command == "QUIT":
+                quit_message(client_socket)
+            elif command == "PART":
                 quit_message(client_socket)
 
             i += 1
