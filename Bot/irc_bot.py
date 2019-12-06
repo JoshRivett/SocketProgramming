@@ -1,8 +1,9 @@
-# Sources:  https://www.techbeamers.com/create-python-irc-bot/
-#           https://www.w3resource.com/python-exercises/python-basic-exercise-3.php
-#           https://www.guru99.com/reading-and-writing-files-in-python.html
-#           https://stackoverflow.com/questions/8380389/how-to-get-day-name-in-datetime-in-python
-#           https://machinelearningmastery.com/how-to-generate-random-numbers-in-python/
+# Sources:
+# https://www.techbeamers.com/create-python-irc-bot/
+# https://www.w3resource.com/python-exercises/python-basic-exercise-3.php
+# https://www.guru99.com/reading-and-writing-files-in-python.html
+# https://stackoverflow.com/questions/8380389/how-to-get-day-name-in-datetime-in-python
+# https://machinelearningmastery.com/how-to-generate-random-numbers-in-python/
 
 from irc_class import *
 from os import path
@@ -20,10 +21,12 @@ if path.exists(config):
     lines = file.readlines()
     server = lines[0].split(': ')[1].rstrip()
     port = int(lines[1].split(': ')[1])
-    channel = lines[2].split(': ')[1].rstrip()
+    username = lines[2].split(': ')[1].rstrip()
     botnick = lines[3].split(': ')[1].rstrip()
-    botnickpass = lines[4].split(': ')[1].rstrip()
-    botpass = lines[5].split(': ')[1].rstrip()
+    mode = int(lines[4].split(': ')[1])
+    realname = lines[5].split(': ')[1].rstrip()
+    channel = lines[6].split(': ')[1].rstrip()
+
 
 # Otherwise, create the file and request the values from the user
 else:
@@ -33,27 +36,42 @@ else:
     server = input("Enter server IP address: ")
     file.write("Server IP: " + server + "\n")
 
-    port = int(input("Enter port: "))
+    # Gets a valid port
+    port = -1
+    while port < 0:
+        try:
+            port = int(input("Enter port: "))
+            if port < 0:
+                print("Invalid port! Must be a positive value.")
+        except ValueError:
+            print("Invalid port! Must be an integer value.")
     file.write("Port: " + str(port) + "\n")
 
-    channel = input("Enter channel: ")
-    file.write("Channel: " + channel + "\n")
+    username = input("Enter bot username: ")
+    file.write("Username: " + username + "\n")
 
     botnick = input("Enter bot nickname: ")
     file.write("Botnick: " + botnick + "\n")
 
-    botnickpass = "netBot"
-    file.write("Botnickpass: " + botnickpass + "\n")
+    # Gets a valid mode
+    try:
+        mode = int(input("Enter mode: "))
+    except ValueError:
+        print("Invalid mode! Must be an integer value.")
+    file.write("Mode: " + str(port) + "\n")
 
-    botpass = "<%= @bot123 %>"
-    file.write("Botpass: " + botpass + "\n")
+    realname = input("Enter bot realname: ")
+    file.write("Realname: " + realname + "\n")
+
+    channel = input("Enter channel: ")
+    file.write("Channel: " + channel + "\n")
 
 # File reading/writing is done
 file.close()
 
 # Connect to the server using the provided parameters
 irc = IRC()
-irc.connect(server, port, channel, botnick, botpass, botnickpass)
+irc.connect(server, port, username, botnick, mode, realname, channel)
 
 # Main loop of the bot
 while True:
@@ -63,6 +81,7 @@ while True:
     # Checks for commands sent in the chat (should start with a '!')
     if "PRIVMSG " + channel in text and "!" in text:
         if "!hello" in text:
+            print("hello")
             irc.send(channel, "Hello!")
         if "!time" in text:
             now = datetime.datetime.now()
